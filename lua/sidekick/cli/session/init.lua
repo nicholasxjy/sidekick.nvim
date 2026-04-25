@@ -75,6 +75,8 @@ function B.sessions()
   error("Backend:sessions() not implemented")
 end
 
+function B.focus() end
+
 ---@param state sidekick.cli.session.Opts
 function M.new(state)
   local tool = state.tool

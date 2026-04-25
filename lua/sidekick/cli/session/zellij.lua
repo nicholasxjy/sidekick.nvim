@@ -110,6 +110,7 @@ function M.sessions()
   return ret
 end
 
+function M.focus() end
 -- function M:dump()
 --   do
 --     -- sigh, another broken zellij feature

@@ -199,4 +199,12 @@ function M:dump()
   return ret
 end
 
+---Focus the tmux pane (select it as the active pane)
+function M:focus()
+  local pane_id = self:pane_id()
+  if pane_id then
+    Util.exec({ "tmux", "select-pane", "-t", pane_id })
+  end
+end
+
 return M
