@@ -44,6 +44,9 @@ function M:start()
   elseif Config.cli.mux.create == "split" then
     local cmd = { "tmux", "split-window", "-dP", "-c", self.cwd, "-F", PANE_FORMAT }
     cmd[#cmd + 1] = Config.cli.mux.split.vertical and "-h" or "-v"
+    if Config.cli.win.layout == "left" then
+      cmd[#cmd + 1] = "-b"
+    end
     local size = Config.cli.mux.split.size
     vim.list_extend(cmd, { "-l", tostring(size <= 1 and ((size * 100) .. "%") or size) })
     self:add_cmd(cmd)
