@@ -44,7 +44,7 @@ function M:start()
   elseif Config.cli.mux.create == "split" then
     local cmd = { "tmux", "split-window", "-dP", "-c", self.cwd, "-F", PANE_FORMAT }
     cmd[#cmd + 1] = Config.cli.mux.split.vertical and "-h" or "-v"
-    if Config.cli.win.layout == "left" then
+    if Config.cli.win.layout == "left" or Config.cli.win.layout == "top" then
       cmd[#cmd + 1] = "-b"
     end
     local size = Config.cli.mux.split.size
