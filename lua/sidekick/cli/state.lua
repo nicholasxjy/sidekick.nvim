@@ -30,6 +30,7 @@ local M = {}
 ---@field focus? boolean
 ---@field attach? boolean
 ---@field all? boolean
+---@field snacks? snacks.picker.ui_select.Opts.snacks Snacks picker options for `vim.ui.select`
 
 ---@param t sidekick.cli.State
 ---@param filter? sidekick.cli.Filter
@@ -160,12 +161,14 @@ function M.with(cb, opts)
     require("sidekick.cli.ui.select").select({
       auto = true,
       filter = opts.filter,
+      snacks = opts.snacks,
       cb = use,
     })
   elseif #attached > 1 and not opts.all then
     require("sidekick.cli.ui.select").select({
       auto = true,
       filter = filter_attached,
+      snacks = opts.snacks,
       cb = use,
     })
   else

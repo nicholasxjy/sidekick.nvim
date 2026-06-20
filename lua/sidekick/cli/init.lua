@@ -28,6 +28,9 @@ local M = {}
 ---@field filter? sidekick.cli.Filter
 ---@field all? boolean
 
+---@class sidekick.cli.Toggle: sidekick.cli.Show
+---@field snacks? snacks.picker.ui_select.Opts.snacks Snacks picker options for `vim.ui.select`
+
 ---@class sidekick.cli.Hide
 ---@field name? string
 ---@field filter? sidekick.cli.Filter
@@ -95,7 +98,7 @@ function M.show(opts)
   })
 end
 
----@param opts? sidekick.cli.Show
+---@param opts? sidekick.cli.Toggle
 ---@overload fun(name: string)
 function M.toggle(opts)
   opts = filter_opts(opts)
@@ -112,6 +115,7 @@ function M.toggle(opts)
   end, {
     attach = true,
     filter = opts.filter,
+    snacks = opts.snacks,
   })
 end
 
