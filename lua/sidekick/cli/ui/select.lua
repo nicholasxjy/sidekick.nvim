@@ -4,6 +4,7 @@ local Util = require("sidekick.util")
 ---@class sidekick.cli.Select: sidekick.cli.With
 ---@field cb fun(state?:sidekick.cli.State)
 ---@field auto? boolean Automatically select if only one tool matches the filter
+---@field snacks? snacks.picker.ui_select.Opts.snacks Snacks picker options for `vim.ui.select`
 
 local M = {}
 
@@ -40,7 +41,7 @@ function M.select(opts)
         return p[1]
       end, parts))
     end,
-    snacks = { format = M.format },
+    snacks = vim.tbl_deep_extend("force", opts.snacks or {}, { format = M.format }),
   }
 
   vim.ui.select(tools, select_opts, on_select)
