@@ -14,6 +14,7 @@ M._attached = {} ---@type table<string,sidekick.cli.Session>
 ---@field pids? integer[] list of pids associated with this session
 ---@field backend? string
 ---@field started? boolean
+---@field starting? boolean asynchronous startup is still pending
 ---@field external? boolean external sessions won't be opened in a terminal
 ---@field parent? sidekick.cli.Session
 ---@field mux_session? string
@@ -123,9 +124,14 @@ function M.setup()
   end
   M.did_setup = true
   Config.tools() -- load tools, since they may register session backends
-  local session_backends = { tmux = "sidekick.cli.session.tmux", zellij = "sidekick.cli.session.zellij" }
+  local session_backends = {
+    tmux = "sidekick.cli.session.tmux",
+    zellij = "sidekick.cli.session.zellij",
+    herdr = "sidekick.cli.session.herdr",
+  }
   for name, mod in pairs(session_backends) do
-    if vim.fn.executable(name) == 1 then
+    local executable = name == "herdr" and require(mod).executable() or name
+    if vim.fn.executable(executable) == 1 then
       M.register(name, require(mod))
     end
   end
@@ -149,8 +155,14 @@ function M.sessions()
     end
   end
   for id in pairs(M._attached) do
-    if not ids[id] then -- session is no longer running
-      M.detach(M._attached[id])
+    if not ids[id] then -- session was not returned by backend discovery
+      local session = M._attached[id]
+      if session.starting then
+        ret[#ret + 1] = session
+        ids[id] = true
+      else
+        M.detach(session)
+      end
     end
   end
   return ret

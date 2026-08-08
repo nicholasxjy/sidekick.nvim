@@ -84,3 +84,33 @@ describe("split_chars", function()
     end)
   end
 end)
+
+describe("exec_async", function()
+  local original_system
+
+  before_each(function()
+    original_system = vim.system
+  end)
+
+  after_each(function()
+    vim.system = original_system
+  end)
+
+  it("returns before the process exits", function()
+    local on_exit
+    vim.system = function(_, _, cb)
+      on_exit = cb
+      return {}
+    end
+    local result
+
+    Util.exec_async({ "test" }, { notify = false }, function(lines, stdout)
+      result = { lines, stdout }
+    end)
+
+    assert.is_nil(result)
+    on_exit({ code = 0, stdout = "one\ntwo\n", stderr = "" })
+    vim.wait(100, function() return result ~= nil end)
+    assert.are.same({ { "one", "two" }, "one\ntwo\n" }, result)
+  end)
+end)

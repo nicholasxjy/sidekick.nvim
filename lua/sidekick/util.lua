@@ -166,11 +166,10 @@ function M.deprecate(deprecated, replacement)
 end
 
 ---@param cmd string[]
----@param opts? vim.SystemOpts|{notify?:boolean}
-function M.exec(cmd, opts)
-  opts = opts or {}
-  opts.text = true
-  local result = vim.system(cmd, opts):wait()
+---@param opts vim.SystemOpts|{notify?:boolean}
+---@param result vim.SystemCompleted
+---@return string[]? lines, string? stdout
+local function exec_result(cmd, opts, result)
   if result.code ~= 0 or not result.stdout then
     if opts.notify ~= false then
       M.error(("Command failed: `%s`\n%s"):format(table.concat(vim.tbl_map(tostring, cmd), " "), result.stderr or ""))
@@ -178,6 +177,26 @@ function M.exec(cmd, opts)
     return nil
   end
   return vim.split(result.stdout, "\n", { plain = true, trimempty = true }), result.stdout
+end
+
+---@param cmd string[]
+---@param opts? vim.SystemOpts|{notify?:boolean}
+function M.exec(cmd, opts)
+  opts = opts or {}
+  opts.text = true
+  local result = vim.system(cmd, opts):wait()
+  return exec_result(cmd, opts, result)
+end
+
+---@param cmd string[]
+---@param opts? vim.SystemOpts|{notify?:boolean}
+---@param cb fun(lines?:string[], stdout?:string)
+function M.exec_async(cmd, opts, cb)
+  opts = opts or {}
+  opts.text = true
+  vim.system(cmd, opts, vim.schedule_wrap(function(result)
+    cb(exec_result(cmd, opts, result))
+  end))
 end
 
 ---@class sidekick.util.Curl

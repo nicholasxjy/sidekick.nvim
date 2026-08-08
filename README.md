@@ -20,7 +20,7 @@ without leaving your editor.
   - 📦 **Pre-configured for Popular Tools**: Out-of-the-box support for Claude, Gemini, Grok, Codex, Copilot CLI, and more.
   - ✨ **Context-Aware Prompts**: Automatically include file content, cursor position, and diagnostics in your prompts.
   - 📝 **Prompt Library**: A library of pre-defined prompts for common tasks like explaining code, fixing issues, or writing tests.
-  - 🔄 **Session Persistence**: Keep your CLI sessions alive with `tmux` and `zellij` integration.
+  - 🔄 **Session Persistence**: Keep your CLI sessions alive with `tmux`, `zellij` and `herdr` integration.
   - 📂 **Automatic File Watching**: Automatically reloads files in Neovim when they are modified by AI tools.
 
 - **🔌 Extensible and Customizable**
@@ -300,6 +300,7 @@ local defaults = {
         hide_ctrl_z   = { "<c-z>", "blur"      , mode = "nt", desc = "go back to the previous window without hiding the terminal" },
         prompt        = { "<c-p>", "prompt"    , mode = "t" , desc = "insert prompt or context" },
         stopinsert    = { "<c-q>", "stopinsert", mode = "t" , desc = "enter normal mode" },
+        normal_cr     = { "<cr>" , "insert_cr" , mode = "n" , desc = "send <cr> to the terminal and enter normal mode" },
         -- Navigate windows in terminal mode. Only active when:
         -- * layout is not "float"
         -- * there is another window in the direction
@@ -315,19 +316,24 @@ local defaults = {
       nav = nil,
     },
     ---@class sidekick.cli.Mux
-    ---@field backend? "tmux"|"zellij" Multiplexer backend to persist CLI sessions
+    ---@field backend? "tmux"|"zellij"|"herdr" Multiplexer backend to persist CLI sessions
     mux = {
-      backend = vim.env.ZELLIJ and "zellij" or "tmux", -- default to tmux unless zellij is detected
+      backend = vim.env.HERDR_ENV == "1" and "herdr" or (vim.env.ZELLIJ and "zellij" or "tmux"),
       enabled = false,
       -- terminal: new sessions will be created for each CLI tool and shown in a Neovim terminal
       -- window: when run inside a terminal multiplexer, new sessions will be created in a new tab
       -- split: when run inside a terminal multiplexer, new sessions will be created in a new split
       -- NOTE: zellij only supports `terminal`
+      -- NOTE: herdr uses `window`/`split` only for canonical supported agents when running inside herdr.
+      -- Unsupported/custom commands and `terminal` run in a Neovim terminal.
       create = "terminal", ---@type "terminal"|"window"|"split"
       split = {
         vertical = true, -- vertical or horizontal split
         size = 0.5, -- size of the split (0-1 for percentage)
       },
+      -- max lines to capture when dumping a multiplexer pane for scrollback support
+      -- more lines means slower loading of the scrollback
+      dump = 2000,
     },
     --- Actual cli tool config is loaded from the runtime path `sk/cli/{tool}.lua` and merged with the config below.
     --- For default configs, see https://github.com/folke/sidekick.nvim/tree/main/sk/cli
@@ -578,7 +584,7 @@ require("sidekick.cli").show(opts)
 
 
 ```lua
----@param opts? sidekick.cli.Show
+---@param opts? sidekick.cli.Toggle
 ---@overload fun(name: string)
 require("sidekick.cli").toggle(opts)
 ```
@@ -923,18 +929,23 @@ Use them together for the complete experience!
 
 ### Terminal sessions not persisting?
 
-Make sure you have tmux or zellij installed and enable the multiplexer:
+Make sure you have tmux, zellij or herdr installed and enable the multiplexer:
 
 ```lua
 opts = {
   cli = {
     mux = {
       enabled = true,
-      backend = "tmux", -- or "zellij"
+      backend = "tmux", -- or "zellij" or "herdr"
     },
   },
 }
 ```
+
+> [!NOTE]
+> When running inside herdr (`HERDR_ENV=1`), sidekick defaults to `herdr` and will
+> detect existing tool sessions. Canonical agents supported by herdr start in a tab
+> (`window`) or split (`split`); unsupported and custom commands use a Neovim terminal.
 
 ### Do I need a GitHub Copilot subscription?
 
