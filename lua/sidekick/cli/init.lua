@@ -200,11 +200,14 @@ function M.send(opts)
       if opts.submit then
         state.session:submit()
       end
+      if opts.focus ~= false then
+        state.session:focus()
+      end
     end)
   end, {
     attach = true,
     filter = opts.filter,
-    focus = opts.focus,
+    focus = false, -- focus after the message has been sent
     show = true,
   })
 end
